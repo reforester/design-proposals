@@ -22,7 +22,7 @@ Basic pages are useful for displaying infrequently-changing text such as an ‘a
 
 May also be supported through these schemas. 
 
-## Schema
+### Schema
 Although documents/images  in the collection contain content of different types, all documents have a similar structure and a set of common fields. 
 GridFS provides the ability to store larger files in MongoDB. GridFS stores data in two collections, in this case, **eliscms.assets.files**, which stores metadata, and **eliscms.assets.chunks** which stores the data itself. Consider the following prototype document from the **eliscms.assets.files** collection:
 
@@ -36,6 +36,7 @@ GridFS provides the ability to store larger files in MongoDB. GridFS stores dat
     contentType: 'image/jpeg',
     metadata: {
           nonce: ObjectId(...),
+          cisCaseId: Long(...),
           slug: '2014-04-fingerprint-scan',
           type: 'photo',
           section: 'my-case',
@@ -50,12 +51,12 @@ GridFS provides the ability to store larger files in MongoDB. GridFS stores dat
 }
 ```
 
-###Index Support
+####Index Support
 Create a unique index on { metadata.section: 1, metadata.slug: 1 } to support the operations and prevent users from creating or updating the same file concurrently. 
 
 ```
 db.eliscms.assets.files.ensure_index([
-('metadata.section', 1), ('metadata.slug', 1)], unique=True)
+('metadata.section', 1), ('metadata.cisCaseId', 1)], unique=True)
 
 ```
 Create an index on the tags field in the eliscms.assets.files collection, to support queries by tags.
@@ -64,16 +65,22 @@ Create an index on the tags field in the eliscms.assets.files collection, to sup
 db.cms.assets.files.ensure_index('tags')
 
 ```
-##Sharding
+###Sharding
 
 In a CMS, read performance is more critical than write performance. To achieve the best read performance in a sharded cluster, ensure that the mongos can route queries to specific shards.
 
 We'll discuss more on this in more detail in the future and how to set this up.
 
-##Follow up Items
 
-###Moving existing cases that are operationalized/completed to this new structure.
-### Provide a design for managing a distributed event between ORACLE and MongoDB.
-####  Case status Updates occur to both ORACLE and Mongo as documents/images are received.
+##Services Impact
+### CisCase Submission
+The current implementation provides a process flow for operationalization of associated cisCase data. This includes any documents, evidences or images that have been submitted with the case. The service/controller that utilizes the data service that writes these documents and other binary data to ORACLE will need to be modified to use a service that manages these through the MongoDB CMS. Further design details will be provided in the next version of this document.
+
+### Document/Evidence Service Management
+The current service implementation that provides and API for storing and retrieval of binary data will require refactoring to use a new service that implements the storage and retrieval through the MongoDB CMS.  Further design details will be provided in the next version of this document.
+
+##Data Migration
+
+###Move completed cases binary data to the new MongoDB CMS.  
 
 
