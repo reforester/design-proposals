@@ -50,3 +50,30 @@ GridFS provides the ability to store larger files in MongoDB. GridFS stores dat
 }
 ```
 
+###Index Support
+Create a unique index on { metadata.section: 1, metadata.slug: 1 } to support the operations and prevent users from creating or updating the same file concurrently. 
+
+```
+db.eliscms.assets.files.ensure_index([
+('metadata.section', 1), ('metadata.slug', 1)], unique=True)
+
+```
+Create an index on the tags field in the eliscms.assets.files collection, to support queries by tags.
+
+```
+db.cms.assets.files.ensure_index('tags')
+
+```
+##Sharding
+
+In a CMS, read performance is more critical than write performance. To achieve the best read performance in a sharded cluster, ensure that the mongos can route queries to specific shards.
+
+We'll discuss more on this in more detail in the future and how to set this up.
+
+##Follow up Items
+
+###Moving existing cases that are operationalized/completed to this new structure.
+### Provide a design for managing a distributed event between ORACLE and MongoDB.
+####  Case status Updates occur to both ORACLE and Mongo as documents/images are received.
+
+
